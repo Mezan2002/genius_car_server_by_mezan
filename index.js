@@ -25,6 +25,8 @@ async function run() {
       .db("geniusCarByMezan")
       .collection("services");
 
+    const orderCollection = client.db("geniusCarByMezan").collection("orders");
+
     // get all services start
     app.get("/services", async (req, res) => {
       const query = {};
@@ -42,6 +44,54 @@ async function run() {
       res.send(service);
     });
     // get one service end
+
+    // set orders start
+    app.post("/orders", async (req, res) => {
+      const order = req.body;
+      const result = await orderCollection.insertOne(order);
+      res.send(result);
+    });
+    // set orders end
+
+    // get user orders start
+    app.get("/orders", async (req, res) => {
+      console.log(req.query);
+      let query = {};
+      const userEmail = req.query.email;
+      if (userEmail) {
+        query = {
+          email: userEmail,
+        };
+      }
+      const cursor = orderCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
+    });
+    // get user orders end
+
+    // update orders start
+    app.patch("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body.status;
+      const query = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          status: status,
+        },
+      };
+      const result = await orderCollection.updateOne(query, updatedDoc);
+      res.send(result);
+    });
+    // update orders end
+
+    // delete order start
+    app.delete("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
+    // delete order end
   } finally {
   }
 }
